@@ -1,0 +1,522 @@
+{
+  "name": "Website_demo_chat_powell",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "6fb701d5-4845-4113-af63-d2c092198cb8",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1808,
+        992
+      ],
+      "id": "64fceae6-9bff-499b-818d-0fafa52869c7",
+      "name": "Webhook",
+      "webhookId": "6fb701d5-4845-4113-af63-d2c092198cb8",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "retryOnFail": true,
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"reply\": \"{{ $json.message || 'Thanks! We’ve got your details.' }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -128,
+        1216
+      ],
+      "id": "510599c8-ad3e-49dc-b6bb-b5fd9854350d",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -1776,
+        1200
+      ],
+      "id": "84f92030-ce97-4478-8014-78e4d8991c75",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "RfY3hv7ddNafMnLR",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0c3ebc9d-60bf-45f6-92ae-7cc7ff5947a8",
+              "leftValue": "={{ $json.status.trim() }}\n",
+              "rightValue": "LEAD_CONFIRMED",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "71f50cc5-a5a3-4e7a-b2d3-6eef0019a059",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "LEAD_CONFIRMED",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -912,
+        1008
+      ],
+      "id": "403b4657-1125-44ce-a1bf-25e2c16d87fe",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Edit Fields').item.json.email }}",
+        "subject": "Prime Auto Care – We'll Contact You Soon",
+        "message": "=Hi {{ $json.name || 'there' }},\n\nThank you for reaching out to <strong>Prime Auto Care</strong>. We’ve received your request and our team is ready to assist you.\n<br>\n<strong>Request Details:</strong>\n<ul>\n  <li><strong>Vehicle:</strong> {{ $json.car_model || 'Not specified' }}</li>\n  <li><strong>Issue:</strong> {{ $json.damage || 'Not specified' }}</li>\n  <li><strong>Urgency:</strong> {{ $json.urgency || 'Normal' }}</li>\n</ul>\n\nOne of our team members will contact you shortly{{ ($json.email || $json.phone) ? ' using your preferred contact method' : '' }} to discuss the next steps and schedule your service.\n\nIf you have any urgent questions, feel free to reply to this email or contact us directly.\n<br>\nWarm regards,<br>\n<strong>Prime Auto Care Team</strong><br>\n<em>Your trusted auto care partner</em>\n",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -288,
+        928
+      ],
+      "id": "0a5ba28f-1474-4f7e-bde1-99bfdda44ea6",
+      "name": "Send a message",
+      "webhookId": "4af0c23b-8531-4200-8474-79dcdbd42799",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2vJCoPVt0bZemFrq",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Webhook').item.json.body.message }}",
+        "options": {
+          "systemMessage": "=### ROLE & CONTEXT\nYou are **Alex**, the virtual front desk assistant for **Prime Auto Body, Inc.** in New York, Pennsylvania. \n- Type: Family-owned business.\n- Service: Auto body repair, collision work, paint, insurance claims.\n- Offer: FREE estimates.\n\n### OBJECTIVE\nYour goal is to collect specific lead information from the user one step at a time. You must parse the user's latest input to update the JSON state and ask the next relevant question.\n\n### RULES & BEHAVIOR\n1. **Persona:** Friendly, professional, and empathetic (especially regarding accidents).\n2. **Scope:** You are a receptionist, NOT a mechanic. Never diagnose issues or quote prices.\n3. **Flow:** Ask **one** question at a time. Do not overwhelm the user. and ask dont give long replies.\n4. **Validation:** You require Name, Car Model, Damage Description, Urgency, and Contact Info.\n5. **Contact Rule:** You must obtain both an Email and a Phone number. If the user refuses both, politely insist one is needed to proceed.\n6. If the user dont give me the required infromation after multiple times asking then suggest them to visit the shop\n7. if user is asking something irrelevant to our services then tell them about what we offer and tell me about the free estimate offer.\n### DATA EXTRACTION (SLOT FILLING)\nExtract the following fields from the conversation history:\n- `name` (String)\n- `car_model` (String)\n- `damage` (Short String)\n- `urgency` (Enum: Low, Medium, High)\n- `email` (String)\n- `phone` (String)\n\n### CONVERSATION LOGIC\n1. **Greeting:** If `name` is empty, greet warmly and ask for their name.\n2. **Car:** If `name` is known but `car_model` is empty, ask for the vehicle year/make/model.\n3. **Damage:** If `car_model` is known but `damage` is empty, ask what happened/what needs repair.\n4. **Urgency:** If `damage` is known but `urgency` is empty, ask how soon they need the repair (Low/Medium/High).\n5. **Contact:** If `urgency` is known but `email` are empty, ask for a email for schedule.\n6.**Contact:** If `email` is known but `phone` are empty, ask for a phone number for quick call.\n7. **Confirmation:** If all required fields are present, set status to \"LEAD_CONFIRMED\" and thank the user.\n\n### OUTPUT FORMAT\nYou must output **ONLY valid JSON**. No markdown blocks, no conversational filler outside the JSON.\n\n**JSON Structure:**\n{\n  \"status\": \"IN_PROGRESS\" or \"LEAD_CONFIRMED\",\n  \"message\": \"String containing your response to the user\",\n  \"lead\": {\n    \"name\": \"Extracted Name or null\",\n    \"email\": \"Extracted Email or null\",\n    \"phone\": \"Extracted Phone or null\",\n    \"car_model\": \"Extracted Model or null\",\n    \"damage\": \"Extracted Damage or null\",\n    \"urgency\": \"Extracted Urgency or null\"\n  }\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -1584,
+        992
+      ],
+      "id": "c4c62266-8887-4723-b1ff-2b61e7be0dbe",
+      "name": "Sales Agent"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Store conversation history in database after each AI response\nconst data = $input.first().json;\n\n// Extract conversation details\nconst userMessage = $('Webhook').item.json.body.message || \"\";\nconst aiResponse = data.reply || \"\";\nconst sessionId = $('Webhook').item.json.body.sessionId || $('Webhook').item.json.body.userId || \"default_session\";\nconst timestamp = data.timestamp || new Date().toISOString();\n\n// Prepare conversation entry for database\nconst conversationEntry = {\n  session_id: sessionId,\n  user_message: userMessage,\n  ai_response: aiResponse,\n  timestamp: timestamp,\n  lead_data: data.lead_data || {},\n  lead_completed: data.leadCompleted || false,\n  turn_count: data.lead_data?.turn_count || 0\n};\n\n// Log for debugging\nconsole.log(\"Storing conversation:\", conversationEntry);\n\n// Return the conversation entry to be stored\nreturn {\n  json: {\n    ...data,\n    conversation_entry: conversationEntry\n  }\n};"
+      },
+      "id": "7f4be121-c8f3-4e8a-a143-1521a9d82a8a",
+      "name": "Build Conversation Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        1744
+      ]
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.body.sessionId || 'default-session' }}\n",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -1488,
+        1200
+      ],
+      "id": "c4ee7f89-d44d-46f0-9b74-73748501c666",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2834e99b-27f5-4701-a512-e7c8120a7b71",
+              "name": "status",
+              "value": "={{ $json.status }}",
+              "type": "string"
+            },
+            {
+              "id": "e0858fe7-d5d3-4840-91c8-285b2eac842c",
+              "name": "message",
+              "value": "={{ $json.message }}",
+              "type": "string"
+            },
+            {
+              "id": "eea3a1a4-96af-44fd-9caf-4370c1252707",
+              "name": "name",
+              "value": "={{ $json.lead.name }}",
+              "type": "string"
+            },
+            {
+              "id": "77d128ef-e3a1-4ef5-b494-1b02919ac0b0",
+              "name": "email",
+              "value": "={{ $json.lead.email }}",
+              "type": "string"
+            },
+            {
+              "id": "ae381ec7-b410-4c5f-be24-aca7b48f88b0",
+              "name": "phone",
+              "value": "={{ $json.lead.phone }}",
+              "type": "number"
+            },
+            {
+              "id": "a11c68b4-4b65-4e46-b81b-321614b08990",
+              "name": "car_model",
+              "value": "={{ $json.lead.car_model }}",
+              "type": "string"
+            },
+            {
+              "id": "9d2e4632-f752-42d8-9a79-8a2955d0be7b",
+              "name": "damage",
+              "value": "={{ $json.lead.damage }}",
+              "type": "string"
+            },
+            {
+              "id": "6efd29d4-8466-458f-a74c-afb4fc28c7cf",
+              "name": "urgency",
+              "value": "={{ $json.lead.urgency }}",
+              "type": "string"
+            },
+            {
+              "id": "8423e786-30f1-40af-bb8f-97773e1350d3",
+              "name": "Date",
+              "value": "={{ $now.toFormat('yyyy-MM-dd') }}",
+              "type": "string"
+            },
+            {
+              "id": "fa609288-e28d-4913-bbe9-85bf15fd93c3",
+              "name": "Time",
+              "value": "={{ $now.toFormat('HH:mm:ss') }}",
+              "type": "string"
+            },
+            {
+              "id": "617c2b7a-1fc3-4dda-8bb7-23cf6c7f8e78",
+              "name": "Mail send",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1088,
+        992
+      ],
+      "id": "82c7b3f6-5423-4083-9d83-610bdca8a040",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const parsed = JSON.parse($json.output);\nreturn [\n  {\n    json: parsed\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1280,
+        992
+      ],
+      "id": "aef0ff69-ff36-46ff-8c97-c67e09a4cd25",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1zQEaOaxA6tscjSCAcoW28vrlCBaznAdYPeVH-MSIZHo",
+          "mode": "list",
+          "cachedResultName": "chat_testing",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zQEaOaxA6tscjSCAcoW28vrlCBaznAdYPeVH-MSIZHo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zQEaOaxA6tscjSCAcoW28vrlCBaznAdYPeVH-MSIZHo/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "car_model",
+              "displayName": "car_model",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "damage",
+              "displayName": "damage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "urgency",
+              "displayName": "urgency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -576,
+        912
+      ],
+      "id": "0d98a9b2-ce55-419e-87e6-56edc2682533",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "huc8WtvA9JO7v8rX",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Sales Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Sales Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sales Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Sales Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Conversation Context": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "69557d75-e42e-4dbf-b03d-c2b3713698e1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "467c7dd3f373297f97aecf5813053cb4b4fc6535ba82af6cf12d8bf8dc97627e"
+  },
+  "id": "jvaNlVP76Yyt3KJ2",
+  "tags": []
+}

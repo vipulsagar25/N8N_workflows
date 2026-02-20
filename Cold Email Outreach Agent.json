@@ -1,0 +1,369 @@
+{
+  "name": "Cold Email Outreach Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "0d84150c-26b0-45ea-a446-6943ebfe2a79",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "maxEmailsPerDay",
+              "value": 50,
+              "type": "number"
+            },
+            {
+              "id": "id-2",
+              "name": "emailSubjectTemplate",
+              "value": "Quick question about [Company]",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "2cfdcf6d-edaa-47dc-8fd1-ea8dea74f678",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Prospect details:\nName: {{ $json['Name '] }}\nCompany: {{ $json.Company }}\nRole: {{ $json.Industry }}\n\nGenerate and send a personalized cold email to this prospect.",
+        "options": {
+          "systemMessage": "=You write cold emails.\n\nReturn ONLY the email body text (no subject, no JSON, no tags).\n\nFormatting rules:\n- Each paragraph MUST be separated by a blank line.\n- Never merge lines.\n- Max 120 words total.\n- Tone: professional, warm, human.\n- No fake stats or percentages.\n- No slang, no hype, no emojis.\n\nEMAIL FORMAT:\n\nHi {{ $json['Name '] }},\n\nI came across {{ $json.Company }} and your work in {{ $json.Industry }} - it looks like you're doing great things in the space.\n\nI help agencies attract more qualified leads and save time using conversion-focused websites combined with simple AI automation for follow-ups.\n\nWould you be open to a quick 10-minute call this week to explore if this could support {{ $json.Company }}?\n\nBest Regards,\nChakshu\n"
+        }
+      },
+      "id": "9a50f5e9-c622-4b3b-8b02-e4d345e7b575",
+      "name": "Cold Email Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        656,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        656,
+        416
+      ],
+      "id": "82e92795-3c94-4173-9918-706616c5eae7",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "bfiKgiiIjbx2Qp8I",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        416
+      ],
+      "id": "99737d38-bdce-4849-9725-7bab806bd906",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Read Rows').item.json.Email }}",
+        "subject": "=For better of your company {{ $('Read Rows').item.json.Company }}   ",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        880,
+        320
+      ],
+      "id": "7dcf135f-ff7c-4ad4-a671-55e39542623d",
+      "name": "Send a message",
+      "webhookId": "c5deba99-f3f3-47e9-9473-16eeb7d298a4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YFKPBquSP3d5Cufw",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1Nf87-8aKZSQn-DU-tPX5A8gykkT-QMSfCgB67lmGktg",
+          "mode": "list",
+          "cachedResultName": "Cold mail",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nf87-8aKZSQn-DU-tPX5A8gykkT-QMSfCgB67lmGktg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nf87-8aKZSQn-DU-tPX5A8gykkT-QMSfCgB67lmGktg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name ": "={{ $('Read Rows').item.json['Name '] }}",
+            "Company": "={{ $('Read Rows').item.json.Company }}",
+            "Email": "={{ $('Read Rows').item.json.Email }}",
+            "Industry": "={{ $('Read Rows').item.json.Industry }}",
+            " City": "={{ $('Read Rows').item.json[' City'] }}",
+            "output": "={{ $('Cold Email Agent').item.json.output }}"
+          },
+          "matchingColumns": [
+            "Email"
+          ],
+          "schema": [
+            {
+              "id": "Name ",
+              "displayName": "Name ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": " City",
+              "displayName": " City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "c6bed382-80ad-43ac-b21b-99c13ca9a03d",
+      "name": "Update Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        976,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mLXVRU7QzmTNKqIK",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Nf87-8aKZSQn-DU-tPX5A8gykkT-QMSfCgB67lmGktg",
+          "mode": "list",
+          "cachedResultName": "Cold mail",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nf87-8aKZSQn-DU-tPX5A8gykkT-QMSfCgB67lmGktg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nf87-8aKZSQn-DU-tPX5A8gykkT-QMSfCgB67lmGktg/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "e91d115c-8188-4266-9bae-e30b407e2dc8",
+      "name": "Read Rows",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        560,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mLXVRU7QzmTNKqIK",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Read Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cold Email Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Cold Email Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "Cold Email Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Update Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Rows": {
+      "main": [
+        [
+          {
+            "node": "Cold Email Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1fbf16f0-f989-4e9f-95c9-4d8b8cdb5609",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4a4c7ade4731581e91ed5704863ef2fd4924654db32d7237b4fc78654b5445b6"
+  },
+  "id": "PyDwTfAGkjCwpyuL",
+  "tags": []
+}

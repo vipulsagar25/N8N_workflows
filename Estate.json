@@ -1,0 +1,793 @@
+{
+  "name": "Estate",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -288,
+        -16
+      ],
+      "id": "5d84c41c-78fa-4b4a-a50d-2cd186d7c769",
+      "name": "Telegram Trigger",
+      "webhookId": "2493cdf7-b26f-4bad-bded-f8c47646b14f",
+      "credentials": {
+        "telegramApi": {
+          "id": "nF4UuhEpNdNA1uIF",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b68a8390-7b67-4fa3-ba87-5ca6bef2e6b6",
+              "name": "user_action",
+              "value": "={{$json.callback_query?.data || $json.message?.text || \"\"}}",
+              "type": "string"
+            },
+            {
+              "id": "0bf75baf-9108-49df-8034-2c43e2905dd2",
+              "name": "chat_id",
+              "value": "={{$json.callback_query?.message?.chat?.id || $json.message?.chat?.id}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -96,
+        -16
+      ],
+      "id": "96721f5c-36f5-406f-8e16-4b6088b2d95d",
+      "name": "Normalize User Action"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$json.user_action}}",
+                    "rightValue": "/start",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "296bc38a-df2c-4889-99ef-b715df074273"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "98f11d21-ec59-4d0d-a646-00c15f474fde",
+                    "leftValue": "={{$json.user_action}}",
+                    "rightValue": "list_properties",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2b4250a3-1029-46ee-9174-f8dec9f89030",
+                    "leftValue": "={{$json.user_action}}",
+                    "rightValue": "property_P-101",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a1d3c964-d91c-4184-bd99-1995f9a83c47",
+                    "leftValue": "={{$json.user_action}}",
+                    "rightValue": "media_image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "89fd4636-2fb8-498a-b8b2-5aafad51fd06",
+                    "leftValue": "={{$json.user_action}}",
+                    "rightValue": "media_video",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        48,
+        16
+      ],
+      "id": "254c0645-8a4d-4e6b-bef7-756347028ff3",
+      "name": "Main Router"
+    },
+    {
+      "parameters": {
+        "chatId": "1323353342",
+        "text": "👋 Welcome to Smart Estate Bot\nYou can browse available properties and view photos or videos.  \nClick below to continue 👇",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "{   \"inline_keyboard\": [     [       { \"text\": \"🏠 View Available Properties\", \"callback_data\": \"list_properties\" }     ]   ] }",
+                    "additionalFields": {}
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        256,
+        -240
+      ],
+      "id": "871464d5-eae4-42de-b995-d3420a548c6e",
+      "name": "Send a text message",
+      "webhookId": "0033106c-eb7a-47e7-a9e4-af87feeffeeb",
+      "credentials": {
+        "telegramApi": {
+          "id": "nF4UuhEpNdNA1uIF",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1B4ifK13AwjZlWefCgb41O7sIXiCEfK_0drubmwL0xhU",
+          "mode": "list",
+          "cachedResultName": "Estate",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1B4ifK13AwjZlWefCgb41O7sIXiCEfK_0drubmwL0xhU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1B4ifK13AwjZlWefCgb41O7sIXiCEfK_0drubmwL0xhU/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Available"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        -112
+      ],
+      "id": "7f77e9c7-32f3-43bf-b1cc-29396edce733",
+      "name": "Get Available Properties",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "DzxzAgX0JyrmBA2F",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const properties = items;\n\nlet message = \"🏠 Available Properties:\\n\\nSelect one to view details 👇\\n\\n\";\nlet buttons = [];\n\nfor (const item of properties) {\n  const p = item.json;\n\n  message += `🏡 ${p[\"Property ID\"]} | ${p.City} | ${p.Bedrooms} Bed | $${p.Price}\\n`;\n\n  buttons.push([\n    {\n      text: `${p[\"Property ID\"]} | ${p.City} | ${p.Bedrooms} Bed`,\n      callback_data: `property_${p[\"Property ID\"]}`\n    }\n  ]);\n}\n\nreturn [\n  {\n    json: {\n      text: message,\n      reply_markup: {\n        inline_keyboard: buttons\n      }\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        -144
+      ],
+      "id": "f1a33a6f-6759-45dd-a113-94deebf2350a",
+      "name": "Format Property List"
+    },
+    {
+      "parameters": {
+        "chatId": "{{$json.chat_id}}",
+        "text": "={{$json.text}}",
+        "replyMarkup": "={{$json.reply_markup}}\n",
+        "forceReply": {},
+        "replyKeyboardOptions": {},
+        "replyKeyboardRemove": {},
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        784,
+        -192
+      ],
+      "id": "e6b3afed-c5c1-4fe4-8173-df363452ddff",
+      "name": "Send a text message1",
+      "webhookId": "bbbc552b-3971-49ba-a4fc-4c509ce30820",
+      "credentials": {
+        "telegramApi": {
+          "id": "nF4UuhEpNdNA1uIF",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5df04e1b-3d7f-4f1d-9dc7-62aae68138b8",
+              "name": "property_id",
+              "value": "={{$json.user_action.replace(\"property_\", \"\")}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        608,
+        32
+      ],
+      "id": "c69b8940-615a-4e06-afaf-327539314d8c",
+      "name": "Extract Property ID"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1B4ifK13AwjZlWefCgb41O7sIXiCEfK_0drubmwL0xhU",
+          "mode": "list",
+          "cachedResultName": "Estate",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1B4ifK13AwjZlWefCgb41O7sIXiCEfK_0drubmwL0xhU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1B4ifK13AwjZlWefCgb41O7sIXiCEfK_0drubmwL0xhU/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Property ID",
+              "lookupValue": "={{$json.property_id}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        768,
+        32
+      ],
+      "id": "43692543-dd57-417a-ab2b-61b5d2e2af96",
+      "name": "Get Property Details",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "DzxzAgX0JyrmBA2F",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const p = items[0].json;\n\nconst text = \n`🏡 Property ${p[\"Property ID\"]}\n\n📍 ${p.Address}, ${p.City}, ${p.State} ${p[\"Zip Code\"]}\n💰 Price: $${p.Price}\n📐 Size: ${p[\"Square Footage\"]} sq ft\n🛏 Bedrooms: ${p.Bedrooms}\n🛁 Bathrooms: ${p.Bathrooms}\n📄 Status: ${p.Status}\n\nWhat would you like to see next?`;\n\nconst reply_markup = {\n  inline_keyboard: [\n    [\n      { text: \"📸 Photos\", callback_data: \"media_image\" },\n      { text: \"🎥 Video\", callback_data: \"media_video\" }\n    ],\n    [\n      { text: \"🔄 Other Properties\", callback_data: \"list_properties\" }\n    ]\n  ]\n};\n\nreturn [\n  {\n    json: {\n      text,\n      reply_markup,\n      property_id: p[\"Property ID\"]\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        32
+      ],
+      "id": "8c13fc21-8d00-4ca7-8b49-9777a40b6fd6",
+      "name": "Format Property Details"
+    },
+    {
+      "parameters": {
+        "chatId": "={{$json.chat_id}}",
+        "text": "={{$json.text}}",
+        "replyMarkup": "={{$json.reply_markup}}\n",
+        "forceReply": {},
+        "replyKeyboardOptions": {},
+        "replyKeyboardRemove": {},
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1072,
+        32
+      ],
+      "id": "483491f4-127b-4100-9d77-a0261da0bdcb",
+      "name": "Send a text message2",
+      "webhookId": "1fe0c82e-8485-4d86-8fa9-adcc9166d081",
+      "credentials": {
+        "telegramApi": {
+          "id": "nF4UuhEpNdNA1uIF",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0ce2f761-6cd6-4868-a0a0-00ef9211542e",
+              "name": "selected_property_id",
+              "value": "={{$json.property_id}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1232,
+        32
+      ],
+      "id": "803c7a26-cab7-4794-8172-0405498e8e17",
+      "name": "Store Selected Property"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "={{$json.property_id}}",
+        "filter": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        592,
+        192
+      ],
+      "id": "344403ec-43f0-4586-9811-5542c1875ec2",
+      "name": "Search files and folders",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "gjT6b194xecHVphJ",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9c21f480-f8ca-4a96-9dc5-c5fcee24771e",
+              "leftValue": "={{$json.mimeType}}",
+              "rightValue": "image/",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        768,
+        240
+      ],
+      "id": "20ce333e-fd2b-4716-bae3-cae2ca823936",
+      "name": "Is Image?"
+    },
+    {
+      "parameters": {
+        "operation": "share",
+        "fileId": {
+          "__rl": true,
+          "value": "={{$json.id}}",
+          "mode": "id"
+        },
+        "permissionsUi": {
+          "permissionsValues": {
+            "role": "reader",
+            "type": "anyone"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        992,
+        224
+      ],
+      "id": "ce250826-9722-4bcc-a974-344060ec2ec2",
+      "name": "Share Image",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "gjT6b194xecHVphJ",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1cc7be7c-0d6b-45dc-99cd-b906802e3203",
+              "name": "property_id",
+              "value": "={{$json.selected_property_id}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        160
+      ],
+      "id": "8ffb3f13-7a08-482b-9853-f4bd56d46aa2",
+      "name": "Get Selected Property"
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{$json.chat_id}}",
+        "file": "={{$json.webContentLink}}",
+        "additionalFields": {
+          "caption": "=Property {{$json.property_id}}"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1168,
+        224
+      ],
+      "id": "3494df12-158b-4974-9351-ea154d1b1dbc",
+      "name": "Send a photo message",
+      "webhookId": "e16875d4-d411-460c-95c6-8680ac54f436",
+      "credentials": {
+        "telegramApi": {
+          "id": "nF4UuhEpNdNA1uIF",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{$json.chat_id}}",
+        "text": "What would you like to do next?",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "{   \"inline_keyboard\": [     [       { \"text\": \"🎥 Video\", \"callback_data\": \"media_video\" }     ],     [       { \"text\": \"🔄 Other Properties\", \"callback_data\": \"list_properties\" }     ]   ] }",
+                    "additionalFields": {}
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1360,
+        224
+      ],
+      "id": "d60b860b-6879-4bbf-8ccd-519690539850",
+      "name": "Send a text message3",
+      "webhookId": "4298e013-2497-4a69-80a1-61d0c3f03632",
+      "credentials": {
+        "telegramApi": {
+          "id": "nF4UuhEpNdNA1uIF",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize User Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize User Action": {
+      "main": [
+        [
+          {
+            "node": "Main Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Main Router": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Available Properties",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract Property ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Selected Property",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Available Properties": {
+      "main": [
+        [
+          {
+            "node": "Format Property List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Property List": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Property ID": {
+      "main": [
+        [
+          {
+            "node": "Get Property Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Property Details": {
+      "main": [
+        [
+          {
+            "node": "Format Property Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Property Details": {
+      "main": [
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message2": {
+      "main": [
+        [
+          {
+            "node": "Store Selected Property",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search files and folders": {
+      "main": [
+        [
+          {
+            "node": "Is Image?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Image?": {
+      "main": [
+        [
+          {
+            "node": "Share Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Selected Property": {
+      "main": [
+        [
+          {
+            "node": "Search files and folders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Share Image": {
+      "main": [
+        [
+          {
+            "node": "Send a photo message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a photo message": {
+      "main": [
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "1144bd86-3bcc-4831-b05e-97a9f5b551b3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "aa66c98f7ca9a4079cf2bbe0681e5bbd0a608d712d25bf16b1b5093fe72a5815"
+  },
+  "id": "PDKKKQaeKp5hLYVc",
+  "tags": []
+}
